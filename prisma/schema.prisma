@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  orders    Orders[]  
+  vendor    Vendor?  
+  deliveryMan  DeliveryMan?
+}
+
+enum Role {
+  USER 
+  ADMIN
+  DELIVERY
+  VENDOR
+}
+
+
+model Vendor {
+  id    Int   @id @default(autoincrement())
+  user  User  @relation(fields: [userId], references: [id])
+  userId  Int  @unique
+  restaurantName  String
+  menuItems   menuItem[]
+  orders    Orders[]
+}
+
+
+model Orders {
+  id   Int    @id @default(autoincrement())
+  user User   @relation(fields: [userId], references: [id])
+  userId  Int
+  vendor  Vendor   @relation(fields: [vendorId], references: [id])
+  vendorId  Int
+  deliveryMan DeliveryMan? @relation(fields: [deliveryManId], references: [id])
+  deliveryManId Int?
+  status OrderStatus @default(PENDING)
+  totalPrice Float
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  DELIVERED
+  CANCELLED
+}
+
+
+model DeliveryMan {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
+  orders    Orders[] 
+  isAvailable Boolean @default(true)
+  vehicleType String?
+  vehicleNumber String?
+}
+
+
+model menuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Float
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  vendorId    Int
+  imageUrl    String?
+  category    String?
+  isAvailable Boolean  @default(true)
+}
