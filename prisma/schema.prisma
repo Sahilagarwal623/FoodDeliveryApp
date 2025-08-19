@@ -19,6 +19,7 @@ model User {
   orders    Orders[]  
   vendor    Vendor?  
   deliveryMan  DeliveryMan?
+  createdAt DateTime  @default(now())
 }
 
 enum Role {
@@ -74,10 +75,12 @@ model DeliveryMan {
 model menuItem {
   id          Int      @id @default(autoincrement())
   name        String
+  description String?
   price       Float
   vendor      Vendor   @relation(fields: [vendorId], references: [id])
   vendorId    Int
   imageUrl    String?
   category    String?
   isAvailable Boolean  @default(true)
+  reviews     Float? @default(0)
 }
