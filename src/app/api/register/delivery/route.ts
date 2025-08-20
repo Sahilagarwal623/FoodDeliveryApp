@@ -3,11 +3,11 @@ import { hash } from 'bcryptjs';
 
 
 export async function POST(request: Request) {
-    
-    const body = await request.json();
-    const { name, email, password, vehicleType, vehicleNumber } = body;
 
-    if (!name || !email || !password || !vehicleType || !vehicleNumber) {
+    const body = await request.json();
+    const { name, email, password, vehicleType, vehicleNumber, phone } = body;
+
+    if (!name || !email || !password || !vehicleType || !vehicleNumber || !phone) {
         return new Response(JSON.stringify({ message: 'Missing required fields' }), {
             status: 400,
         });
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
             email: email,
             password: hashedPassword,
             role: 'DELIVERY',
+            phone: phone,
             deliveryMan: {
                 create: {
                     vehicleType: vehicleType,
@@ -42,7 +43,13 @@ export async function POST(request: Request) {
         }
     });
 
-    return new Response(JSON.stringify({ message: 'User registered successfully', user: newUser }), {
+    return new Response(JSON.stringify({
+        message: 'User registered successfully', user: {
+            email: newUser.email,
+            name: newUser.name,
+            id: newUser.id,
+        }
+    }), {
         status: 201,
     });
 

@@ -4,9 +4,9 @@ import {hash} from 'bcryptjs';
 
 export async function POST(request: Request) {
 
-    const {name, email, password, restrauntName, restrauntId} = await request.json();
+    const {name, email, password, restaurantName, restaurantId} = await request.json();
 
-    if (!name || !email || !password || !restrauntName || !restrauntId) {
+    if (!name || !email || !password || !restaurantName || !restaurantId) {
 
         return new Response(JSON.stringify({message: 'Missing required fields'}), {
             status: 400,
@@ -36,8 +36,8 @@ export async function POST(request: Request) {
             role: 'VENDOR',
             vendor: {
                 create: {
-                    restaurantName: restrauntName,
-                    restaurantId: restrauntId,
+                    restaurantName: restaurantName,
+                    restaurantId: restaurantId,
                 }
             }
         }
