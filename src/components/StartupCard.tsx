@@ -4,7 +4,7 @@ import { formatDate } from '../lib/utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-export default function StartupCard({ post }: { post: StatrtupTypeCard }) {
+export default function StartupCard({ post }: { post: any }) {
   return (
     <li className="relative p-4 bg-white rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col">
       {/* Author section - top right */}
