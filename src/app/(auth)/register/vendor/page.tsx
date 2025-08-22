@@ -3,6 +3,7 @@ import { useState } from "react"
 import type React from "react"
 
 import { Building2, Mail, Lock, User, Hash } from "lucide-react"
+import OtpLogin from "@/components/OtpLogin"
 
 export default function VendorRegisterPage() {
   const [name, setName] = useState("")
@@ -11,6 +12,7 @@ export default function VendorRegisterPage() {
   const [restaurantName, setRestaurantName] = useState("")
   const [restaurantId, setRestaurantId] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +35,7 @@ export default function VendorRegisterPage() {
 
       if (response.ok) {
         alert("Vendor registered successfully")
+        setFormSubmitted(true);
       } else {
         const errorData = await response.json()
         alert(`Error: ${errorData.message}`)
@@ -55,8 +58,7 @@ export default function VendorRegisterPage() {
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Join as Vendor</h1>
           <p className="text-slate-600 leading-relaxed">Create your restaurant account and start serving customers</p>
         </div>
-
-        {/* Form */}
+        {!formSubmitted ? (
         <form
           onSubmit={handleSubmit}
           className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20 space-y-6"
@@ -160,7 +162,9 @@ export default function VendorRegisterPage() {
               </a>
             </p>
           </div>
-        </form>
+        </form>): (
+            <OtpLogin email={email} password={password}/>
+        )}
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     GoogleProvider,
     CredentialsProvider({
+      id: 'credentials',
       name: 'Credentials',
       credentials: {
         email: { label: "email", type: "email" },
@@ -48,6 +49,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })
   ],
 
+  pages: {
+    signIn: '/login',
+  },
+
   session: {
     strategy: "jwt",
   },
@@ -69,5 +74,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     }
-  }
+  },
+  secret: process.env.AUTH_SECRET,
 })

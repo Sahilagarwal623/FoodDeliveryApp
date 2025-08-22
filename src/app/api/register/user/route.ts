@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, password, phone } = body;
 
-    if (!name || !email || !password || !phone) {
+    if (!name || !email || !password) {
 
         return new Response(JSON.stringify({ message: 'Missig required fields' }), {
             status: 400,
@@ -29,14 +29,18 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hash(password, 10);
-    const hashedPhone = encrypt(phone);
+    let hashedPhone = null;
+
+    if (phone) {
+        hashedPhone = encrypt(phone);
+    }
 
     const newUser = await prismaClient.user.create({
         data: {
             name: name,
             email: email,
             password: hashedPassword,
-            phone: hashedPhone,
+            ...(hashedPhone && { phone: hashedPhone }),
         }
     });
 

@@ -5,9 +5,9 @@ import {hash} from 'bcryptjs';
 
 export async function POST(request: Request) {
 
-    const {name, email, password, restaurantName, restaurantId, phone} = await request.json();
+    const {name, email, password, restaurantName, restaurantId} = await request.json();
 
-    if (!name || !email || !password || !restaurantName || !restaurantId || !phone) {
+    if (!name || !email || !password || !restaurantName || !restaurantId) {
 
         return new Response(JSON.stringify({message: 'Missing required fields'}), {
             status: 400,
@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hash(password, 10);
-    const hashedPhone = encrypt(phone);
 
     const newUser = await prismaClient.user.create({
         data: {
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
             email: email,
             password: hashedPassword,
             role: 'VENDOR',
-            phone: hashedPhone,
             vendor: {
                 create: {
                     restaurantName: restaurantName,

@@ -1,13 +1,22 @@
 'use client'; // This is a client component because it uses React
 
-import React from 'react'
+import React, { useReducer } from 'react'
 import {
     ConfirmationResult,
     signInWithPhoneNumber,
     RecaptchaVerifier,
 } from 'firebase/auth';
 
+import {useRouter} from 'next/navigation'
+
+import { signIn } from 'next-auth/react';
+
 import { auth } from '@/lib/firebase';
+
+type OtpLoginProps = {
+    email: String,
+    password: String,
+}
 
 import { useState, useEffect, useTransition, FormEvent } from 'react';
 import {
@@ -19,17 +28,16 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter } from 'next/router';
 
-export default function OtpLogin() {
-
-    const router = useRouter();
+export default function OtpLogin({ email, password }: OtpLoginProps) {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(
         null
     );
+
+    const router = useRouter();
     const [success, setSuccess] = useState('');
     const [isPending, startTransition] = useTransition();
     const [resendCountdown, setResendCountdown] = useState(0);
@@ -59,7 +67,7 @@ export default function OtpLogin() {
     }, [auth]);
 
     useEffect(() => {
-        const hasEnded = (otp.length === 6)&& confirmationResult;
+        const hasEnded = (otp.length === 6) && confirmationResult;
         if (hasEnded) {
             verifyOtp();
         }
@@ -75,7 +83,28 @@ export default function OtpLogin() {
 
             try {
                 await confirmationResult?.confirm(otp);
-                router.replace('/');
+
+
+                await signIn("credentials", {
+                    redirect: false,
+                    email: email,
+                    password: password,
+                })
+                const response = await fetch('/api/update-phone', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phone: `+91${phone}`,
+                    }),
+                    credentials: 'include'
+                });
+
+                router.replace('/restaurants');
+                if (!response.ok) {
+                    setError("Unable to SignIn, Pls try again later")
+                }
             } catch (error: any) {
                 console.error('Error verifying OTP:', error);
                 setError('Failed to verify OTP, please try again');
@@ -99,9 +128,11 @@ export default function OtpLogin() {
             }
 
             try {
+
+                const formattedPhone = `+91${phone}`
                 const confirmationResult = await signInWithPhoneNumber(
                     auth,
-                    phone,
+                    formattedPhone,
                     recaptchaVerifier
                 );
 

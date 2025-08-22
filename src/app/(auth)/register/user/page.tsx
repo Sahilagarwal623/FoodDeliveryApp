@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { signIn } from "@/auth-client"
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import OtpLogin from "@/components/OtpLogin"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,9 +26,10 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({ name, email, password }),
       })
-
+      
       if (res.ok) {
         alert("Registration successful!")
+        setFormSubmitted(true)
       }
     } finally {
       setIsLoading(false)
@@ -36,7 +39,7 @@ export default function RegisterPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      const result = await signIn("google", {
+      await signIn("google", {
         redirect: true,
         callbackUrl: "/",
       })
@@ -54,7 +57,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {!formSubmitted ? (<form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-semibold text-slate-700">
                 Full Name
@@ -175,12 +178,15 @@ export default function RegisterPage() {
               </svg>
               Continue with Google
             </button>
-          </form>
+          </form>) : (
+            <OtpLogin email={email} password={password} />
+
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-slate-600">
               Already have an account?{" "}
-              <a href="/login" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+              <a href="/login/user" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                 Sign in
               </a>
             </p>
