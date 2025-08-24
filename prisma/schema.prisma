@@ -4,56 +4,57 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  role      Role      @default(USER)
-  phone     String?    @unique
-  orders    Orders[]  
-  vendor    Vendor?  
-  deliveryMan  DeliveryMan?
-  createdAt DateTime  @default(now())
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String
+  role        Role         @default(USER)
+  phone       String?      @unique
+  orders      Orders[]
+  vendor      Vendor?
+  deliveryMan DeliveryMan?
+  createdAt   DateTime     @default(now())
+  cartItems   CartItem[]
 }
 
 enum Role {
-  USER 
+  USER
   ADMIN
   DELIVERY
   VENDOR
 }
 
-
 model Vendor {
-  id    Int   @id @default(autoincrement())
-  user  User  @relation(fields: [userId], references: [id])
-  userId  Int  @unique
-  restaurantName  String
-  restaurantId    String @unique
-  menuItems   menuItem[]
-  orders    Orders[]
+  id             Int        @id @default(autoincrement())
+  user           User       @relation(fields: [userId], references: [id])
+  userId         Int        @unique
+  restaurantName String
+  restaurantId   String     @unique
+  menuItems      menuItem[]
+  orders         Orders[]
+  rating         Float      @default(0)
+  priceRange     Float?
+  imageUrl       String?
 }
 
-
 model Orders {
-  id   Int    @id @default(autoincrement())
-  user User   @relation(fields: [userId], references: [id])
-  userId  Int
-  vendor  Vendor   @relation(fields: [vendorId], references: [id])
-  vendorId  Int
-  deliveryMan DeliveryMan? @relation(fields: [deliveryManId], references: [id])
+  id            Int          @id @default(autoincrement())
+  user          User         @relation(fields: [userId], references: [id])
+  userId        Int
+  vendor        Vendor       @relation(fields: [vendorId], references: [id])
+  vendorId      Int
+  deliveryMan   DeliveryMan? @relation(fields: [deliveryManId], references: [id])
   deliveryManId Int?
-  status OrderStatus @default(PENDING)
-  amount Float
-  payment Payment?
-  createdAt DateTime @default(now())
+  status        OrderStatus  @default(PENDING)
+  amount        Float
+  payment       Payment?
+  createdAt     DateTime     @default(now())
 }
 
 enum OrderStatus {
@@ -63,38 +64,37 @@ enum OrderStatus {
   CANCELLED
 }
 
-
 model DeliveryMan {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int      @unique
-  orders    Orders[] 
-  isAvailable Boolean @default(true)
-  vehicleType String?
+  id            Int      @id @default(autoincrement())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        Int      @unique
+  orders        Orders[]
+  isAvailable   Boolean  @default(true)
+  vehicleType   String?
   vehicleNumber String?
 }
 
-
 model menuItem {
-  id          Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   description String?
   price       Float
-  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  vendor      Vendor     @relation(fields: [vendorId], references: [id])
   vendorId    Int
   imageUrl    String?
   category    String?
-  isAvailable Boolean  @default(true)
-  reviews     Float? @default(0)
+  isAvailable Boolean    @default(true)
+  reviews     Float?     @default(0)
+  cartItem    CartItem[]
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  order     Orders   @relation(fields: [orderId], references: [id])
-  orderId   Int      @unique
+  id        Int           @id @default(autoincrement())
+  order     Orders        @relation(fields: [orderId], references: [id])
+  orderId   Int           @unique
   amount    Float
   status    PaymentStatus @default(PENDING)
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
 }
 
 enum PaymentStatus {
@@ -102,4 +102,15 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+model CartItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  userId     Int
+  menuItemId Int
+  user       User     @relation(fields: [userId], references: [id])
+  menuItem   menuItem @relation(fields: [menuItemId], references: [id])
+
+  @@unique([userId, menuItemId]) // Ensures a user can't have duplicate menu items
 }

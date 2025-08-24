@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useSession, signOut } from "next-auth/react"
 import { useState } from "react"
+import Cart from "./Cart"
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -17,8 +18,12 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-6 relative">
+
           {session && session.user ? (
             <div className="flex items-center gap-4">
+              {session.user.role === 'USER' && (
+                <Cart />
+              )}
               <span className="text-slate-700 font-medium text-sm">Welcome, {session.user.name}</span>
 
               <button

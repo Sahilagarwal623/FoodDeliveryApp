@@ -27,6 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: true,
             email: true,
             password: true,  // explicitly included
+            role: true,
           }
         });
 
@@ -44,6 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role
         };
       }
     })
@@ -63,6 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = user.role;
       }
       return token;
     },
@@ -71,9 +74,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.email = token.email as string;
+        session.user.role = token.role as string;
       }
       return session;
-    }
+    },
   },
   secret: process.env.AUTH_SECRET,
 })

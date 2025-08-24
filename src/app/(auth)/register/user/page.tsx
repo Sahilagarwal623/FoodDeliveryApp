@@ -41,7 +41,7 @@ export default function RegisterPage() {
     try {
       await signIn("google", {
         redirect: true,
-        callbackUrl: "/",
+        callbackUrl: "/restaurants",
       })
     } finally {
       setIsLoading(false)
@@ -179,7 +179,7 @@ export default function RegisterPage() {
               Continue with Google
             </button>
           </form>) : (
-            <OtpLogin email={email} password={password} />
+            <OtpLogin email={email} password={password} role={'USER'}/>
 
           )}
 

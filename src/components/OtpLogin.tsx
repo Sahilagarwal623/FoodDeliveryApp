@@ -1,13 +1,13 @@
 'use client'; // This is a client component because it uses React
 
-import React, { useReducer } from 'react'
+import React from 'react'
 import {
     ConfirmationResult,
     signInWithPhoneNumber,
     RecaptchaVerifier,
 } from 'firebase/auth';
 
-import {useRouter} from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import { signIn } from 'next-auth/react';
 
@@ -16,6 +16,7 @@ import { auth } from '@/lib/firebase';
 type OtpLoginProps = {
     email: String,
     password: String,
+    role: String
 }
 
 import { useState, useEffect, useTransition, FormEvent } from 'react';
@@ -29,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function OtpLogin({ email, password }: OtpLoginProps) {
+export default function OtpLogin({ email, password, role }: OtpLoginProps) {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
@@ -101,7 +102,12 @@ export default function OtpLogin({ email, password }: OtpLoginProps) {
                     credentials: 'include'
                 });
 
-                router.replace('/restaurants');
+                if (role === 'USER')
+                    router.replace('/restaurants');
+                else if (role === 'VENDOR')
+                    router.replace('/vendor/dashboard');
+                else if (role === 'DELIVERY')
+                    router.replace('/delivery/dashboard')
                 if (!response.ok) {
                     setError("Unable to SignIn, Pls try again later")
                 }

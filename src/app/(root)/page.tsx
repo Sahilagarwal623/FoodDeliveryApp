@@ -22,7 +22,7 @@ export default function FoodDeliveryLanding() {
             <Button size="lg" className="text-lg px-8" asChild>
               <Link href="/restaurants">Order Now</Link>
             </Button>
-            
+
             <Button size="lg" variant="outline" className="text-lg px-8 bg-transparent" asChild>
               <Link href="/restaurants">Browse Restaurants</Link>
             </Button>

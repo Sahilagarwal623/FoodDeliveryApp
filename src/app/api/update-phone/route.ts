@@ -1,6 +1,5 @@
 import { auth } from '@/auth';
 import { prismaClient } from '@/lib/prisma';
-import { log } from 'console';
 import { NextResponse } from 'next/server';
 
 // ✅ PATCH function: ONLY for updating data

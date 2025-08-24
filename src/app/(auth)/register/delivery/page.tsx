@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Truck, User, Mail, Lock, Car, Hash } from "lucide-react"
+import OtpLogin from "@/components/OtpLogin"
 
 export default function DeliveryRegisterPage() {
   const [name, setName] = useState("")
@@ -12,6 +13,7 @@ export default function DeliveryRegisterPage() {
   const [vehicleType, setVehicleType] = useState("")
   const [vehicleNumber, setVehicleNumber] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,12 +36,7 @@ export default function DeliveryRegisterPage() {
 
       if (response.ok) {
         alert("Delivery person registered successfully")
-        // Reset form
-        setName("")
-        setEmail("")
-        setPassword("")
-        setVehicleType("")
-        setVehicleNumber("")
+        setFormSubmitted(true)
       } else {
         const errorData = await response.json()
         alert(`Error: ${errorData.message}`)
@@ -63,10 +60,8 @@ export default function DeliveryRegisterPage() {
             <h1 className="text-2xl font-bold text-white mb-2">Join Our Delivery Team</h1>
             <p className="text-blue-100 text-sm">Register as a delivery partner and start earning</p>
           </div>
-
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            {/* Personal Information Section */}
+          {!formSubmitted ? (<form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
@@ -168,7 +163,18 @@ export default function DeliveryRegisterPage() {
             <p className="text-center text-sm text-slate-600">
               By registering, you agree to our terms of service and delivery partner agreement.
             </p>
-          </form>
+          </form>) : (
+            <OtpLogin email={email} password={password} role={'DELIVERY'} />
+          )}
+
+          <div className="mt-4 text-center mb-2">
+            <p className="text-sm text-slate-600">
+              Already have an account?{" "}
+              <a href="/login/delivery" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                Sign in
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

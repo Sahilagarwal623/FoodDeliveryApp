@@ -157,13 +157,13 @@ export default function VendorRegisterPage() {
           <div className="text-center pt-4 border-t border-slate-200">
             <p className="text-sm text-slate-500">
               Already have an account?{" "}
-              <a href="/login" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <a href="/login/vendor" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
                 Sign in here
               </a>
             </p>
           </div>
         </form>): (
-            <OtpLogin email={email} password={password}/>
+            <OtpLogin email={email} password={password} role={'VENDOR'}/>
         )}
       </div>
     </div>
