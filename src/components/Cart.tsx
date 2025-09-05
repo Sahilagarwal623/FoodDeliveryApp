@@ -3,6 +3,7 @@
 import { ShoppingCart } from "lucide-react"
 import { useCartStore } from "@/store/cart-store"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import {
     Sheet,
     SheetContent,
@@ -17,7 +18,7 @@ import { useEffect } from "react"
 
 export default function Cart() {
     // Subscribe to the store to get the state and actions
-    const { items, addItem, removeItem, getTotalItems, getCartTotal, initializeCart } = useCartStore()
+    const { items, addItem, removeItem, getTotalItems, getCartTotal, initializeCart, clearCart } = useCartStore()
 
     // Use selectors to get computed values
     const totalItems = getTotalItems()
@@ -82,7 +83,7 @@ export default function Cart() {
                             </div>
                             <SheetClose asChild>
                                 <Button className="w-full" size="lg">
-                                    Checkout
+                                    <Link href="/checkout">Proceed to Checkout</Link>
                                 </Button>
                             </SheetClose>
                         </SheetFooter>

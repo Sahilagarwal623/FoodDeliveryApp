@@ -19,6 +19,7 @@ type CartState = {
     removeItem: (itemId: number) => Promise<void>;
     getTotalItems: () => number,
     getCartTotal: () => number,
+    clearCart: () => Promise<void>
 };
 
 export const useCartStore = create<CartState>()(
@@ -91,5 +92,16 @@ export const useCartStore = create<CartState>()(
             return items.reduce((total, item) => total + item.price * item.quantity, 0);
         },
 
+        clearCart: async () => {
+            set({ items: {} });
+            try {
+                await fetch('/api/cart', {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+            } catch (error) {
+                console.error("Failed to clear cart:", error);
+            }
+        }
     }))
 );

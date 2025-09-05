@@ -71,3 +71,25 @@ export async function POST(request: Request) {
 
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const userId = parseInt(session.user.id, 10);
+
+        await prismaClient.cartItem.deleteMany({
+            where: {
+                userId: userId,
+            },
+        });
+
+        return NextResponse.json({ message: 'Cart cleared successfully' }, { status: 200 });
+
+    } catch (error) {
+        console.error("Failed to clear cart:", error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

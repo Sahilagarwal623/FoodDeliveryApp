@@ -21,6 +21,7 @@ model User {
   deliveryMan DeliveryMan?
   createdAt   DateTime     @default(now())
   cartItems   CartItem[]
+  addresses   Address[]
 }
 
 enum Role {
@@ -43,6 +44,20 @@ model Vendor {
   imageUrl       String?
 }
 
+model Address {
+  id      Int    @id @default(autoincrement())
+  street  String
+  city    String
+  state   String
+  zipCode String
+  phone   String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("addresses")
+}
+
 model Orders {
   id            Int          @id @default(autoincrement())
   user          User         @relation(fields: [userId], references: [id])
@@ -55,6 +70,17 @@ model Orders {
   amount        Float
   payment       Payment?
   createdAt     DateTime     @default(now())
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  price      Float // Price at the time of order
+  orderId    Int
+  order      Orders   @relation(fields: [orderId], references: [id])
+  menuItemId Int
+  menuItem   menuItem @relation(fields: [menuItemId], references: [id])
 }
 
 enum OrderStatus {
@@ -62,6 +88,7 @@ enum OrderStatus {
   IN_PROGRESS
   DELIVERED
   CANCELLED
+  OUT_FOR_DELIVERY
 }
 
 model DeliveryMan {
@@ -75,17 +102,18 @@ model DeliveryMan {
 }
 
 model menuItem {
-  id          Int        @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String?
   price       Float
-  vendor      Vendor     @relation(fields: [vendorId], references: [id])
+  vendor      Vendor      @relation(fields: [vendorId], references: [id])
   vendorId    Int
   imageUrl    String?
   category    String?
-  isAvailable Boolean    @default(true)
-  reviews     Float?     @default(0)
+  isAvailable Boolean     @default(true)
+  reviews     Float?      @default(0)
   cartItem    CartItem[]
+  ordersItems OrderItem[]
 }
 
 model Payment {

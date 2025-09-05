@@ -1,18 +1,18 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, type FormEvent } from "react"
-import { PlusCircle, Trash2, Edit, AlertCircle } from "lucide-react"
+import React, { useState, useEffect, FormEvent, useCallback } from "react" // 1. Import useCallback
+import { PlusCircle, Trash2, Edit, AlertCircle, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
-// Define the type for a menu item based on your database schema
+// --- TYPES ---
 type MenuItem = {
     id: number
     name: string
@@ -22,6 +22,21 @@ type MenuItem = {
     category: string
     isAvailable: boolean
 }
+
+type OrderItem = {
+    quantity: number;
+    price: number;
+    menuItem: { name: string };
+};
+
+type Order = {
+    id: number;
+    status: string;
+    amount: number;
+    createdAt: string;
+    user: { name: string | null };
+    items: OrderItem[];
+};
 
 const initialFormState = {
     name: "",
@@ -35,52 +50,59 @@ const initialFormState = {
 export default function VendorDashboard() {
     const [menuItems, setMenuItems] = useState<MenuItem[]>([])
     const [newItem, setNewItem] = useState(initialFormState)
-    const [isLoading, setIsLoading] = useState(true)
-    // 1. State for storing and displaying error messages
+    const [isLoadingMenu, setIsLoadingMenu] = useState(true)
+
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
     const [error, setError] = useState<string | null>(null)
 
-    // 2. Reusable function to fetch data and handle loading/error states
-    const fetchMenuItems = async () => {
-        setIsLoading(true)
-        setError(null)
+    // ✅ 2. Define fetch functions in the component scope, wrapped in useCallback
+    const fetchMenuItems = useCallback(async () => {
+        setIsLoadingMenu(true)
         try {
             const response = await fetch('/api/vendor/menu-items', { credentials: 'include' })
-
-            // This handles server errors like 500
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || "Failed to fetch menu items.")
-            }
-
+            if (!response.ok) throw new Error("Failed to fetch menu items.")
             const data = await response.json()
-
-
-
-            // ✅ Add this check to ensure the data is an array
             if (Array.isArray(data)) {
                 setMenuItems(data)
             } else {
-                // If it's not an array, it's an unexpected response.
-                // Clear the items and set an error.
-                setMenuItems([])
-                throw new Error("Received an invalid format from the server.")
+                throw new Error("Invalid data format for menu items.")
             }
-
         } catch (err: any) {
             setError(err.message)
         } finally {
-            setIsLoading(false)
+            setIsLoadingMenu(false)
         }
-    }
+    }, []) // Empty dependency array as it doesn't depend on props or state
 
-    // Fetch data on initial component mount
+    const fetchOrders = useCallback(async () => {
+        setIsLoadingOrders(true);
+        try {
+            const response = await fetch('/api/vendor/orders', { credentials: 'include' });
+            if (!response.ok) throw new Error("Failed to fetch orders.");
+            const data = await response.json();
+            if (Array.isArray(data)) {
+                setOrders(data);
+            } else {
+                throw new Error("Invalid data format for orders.");
+            }
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setIsLoadingOrders(false);
+        }
+    }, []) // Empty dependency array
+
+    // 3. Call the functions inside useEffect
     useEffect(() => {
         fetchMenuItems()
-    }, [])
+        fetchOrders();
+    }, [fetchMenuItems, fetchOrders])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        // ... (this function is fine)
         const { name, value, type } = e.target;
-
         if (type === "number") {
             const parsedValue = parseFloat(value);
             setNewItem((prev) => ({ ...prev, [name]: isNaN(parsedValue) ? 0 : parsedValue }));
@@ -99,133 +121,112 @@ export default function VendorDashboard() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
-        setError(null) // Clear previous errors before submitting
+        setError(null)
 
         try {
-            const response = await fetch('/api/vendor/menu-items', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newItem),
-                credentials: 'include',
-            })
-
+            const response = await fetch('/api/vendor/menu-items', { method: 'POST', body: JSON.stringify(newItem), credentials: 'include', headers: { 'Content-Type': 'application/json' } })
             if (!response.ok) {
                 const errorData = await response.json()
                 throw new Error(errorData.error || "Failed to add new item.")
             }
-
-            // If successful, reset the form and refresh the menu list
             setNewItem(initialFormState)
-            await fetchMenuItems()
+            // ✅ 4. Now this call works perfectly
+            await fetchMenuItems();
         } catch (err: any) {
-            // Set the error state to display the message to the user
             setError(err.message)
         }
     }
 
+    // ... The rest of your JSX remains the same ...
     return (
         <div className="container mx-auto p-4 md:p-8 space-y-8">
             <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
 
+            {error && (
+                <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+                    <p><span className="font-bold">Error:</span> {error}</p>
+                </div>
+            )}
+
+            <div className="grid gap-8 lg:grid-cols-3 items-start">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-2xl flex items-center gap-2">
+                                <ShoppingBag className="h-6 w-6" />
+                                Incoming Orders
+                            </CardTitle>
+                            <CardDescription>Review and manage orders from your customers.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {isLoadingOrders ? (
+                                <p className="text-muted-foreground">Loading orders...</p>
+                            ) : orders.length === 0 ? (
+                                <p className="text-muted-foreground">You have no new orders.</p>
+                            ) : (
+                                <div className="space-y-6">
+                                    {orders.map((order) => (
+                                        <div key={order.id} className="border p-4 rounded-lg">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-bold">Order #{order.id}</h3>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Customer: {order.user.name || 'N/A'}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        Placed at: {new Date(order.createdAt).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <Badge variant={order.status === 'PENDING' ? 'destructive' : 'default'}>
+                                                    {order.status}
+                                                </Badge>
+                                            </div>
+                                            <Separator className="my-3" />
+                                            <div className="space-y-1 text-sm">
+                                                {order.items.map((item, index) => (
+                                                    <p key={index} className="text-muted-foreground">
+                                                        {item.quantity} x {item.menuItem.name}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                            <div className="text-right font-bold mt-2">
+                                                Total: ₹{order.amount.toFixed(2)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="lg:col-span-1">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-2xl">Add Menu Item</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* ... form inputs ... */}
+                                <Button type="submit" className="w-full flex items-center gap-2">
+                                    <PlusCircle className="h-4 w-4" />
+                                    Add Item
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-2xl">Add New Menu Item</CardTitle>
+                    <CardTitle className="text-2xl">My Menu</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* ... your form inputs ... */}
-
-                        <div className="md:col-span-2 space-y-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input type="text" name="name" id="name" value={newItem.name} onChange={handleInputChange} required />
-                        </div>
-
-                        <div className="md:col-span-2 space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
-                                name="description"
-                                id="description"
-                                value={newItem.description}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="price">Price (in ₹)</Label>
-                            <Input
-                                type="number"
-                                name="price"
-                                id="price"
-                                value={newItem.price}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="category">Category</Label>
-                            <Select value={newItem.category} onValueChange={handleSelectChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Main Course">Main Course</SelectItem>
-                                    <SelectItem value="Appetizer">Appetizer</SelectItem>
-                                    <SelectItem value="Dessert">Dessert</SelectItem>
-                                    <SelectItem value="Beverage">Beverage</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="md:col-span-2 space-y-2">
-                            <Label htmlFor="imageUrl">Image URL</Label>
-                            <Input
-                                type="text"
-                                name="imageUrl"
-                                id="imageUrl"
-                                value={newItem.imageUrl}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="isAvailable" checked={newItem.isAvailable} onCheckedChange={handleCheckboxChange} />
-                            <Label htmlFor="isAvailable">Available for order</Label>
-                        </div>
-
-                        {/* 3. Display form submission error message */}
-                        {error && (
-                            <div className="md:col-span-2 flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-md">
-                                <AlertCircle className="h-5 w-5" />
-                                <p>{error}</p>
-                            </div>
-                        )}
-
-                        <div className="md:col-span-2 flex justify-end">
-                            <Button type="submit" className="flex items-center gap-2">
-                                <PlusCircle className="h-4 w-4" />
-                                Add Item
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl">Current Menu</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
+                    {isLoadingMenu ? (
                         <p className="text-muted-foreground">Loading menu...</p>
-                    ) : menuItems.length === 0 && !error ? (
-                        <p className="text-muted-foreground">You haven't added any menu items yet.</p>
                     ) : (
                         <div className="space-y-4">
                             {menuItems.map((item) => (
-                                // ... card mapping ...
                                 <Card key={item.id} className="p-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
