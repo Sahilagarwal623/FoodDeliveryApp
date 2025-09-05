@@ -1,11 +1,13 @@
-'use client';
+"use client"
 
-import React, { useState, useEffect, FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import type React from "react"
+import { useState, useEffect, type FormEvent } from "react"
+import { Loader2, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { LocationPicker } from '../shared/LocationPicker';
 
 type Address = {
     id: number;
@@ -14,17 +16,20 @@ type Address = {
     state: string;
     zipCode: string;
     phone: string;
+    latitude: number | null;
+    longitude: number | null;
 };
 
 type AddressFormData = Omit<Address, 'id'>;
 
 type AddressFormProps = {
     addressToEdit?: Address | null;
-    onSave: () => void; // Callback to notify parent on success
+    onSave: () => void;
 };
 
 const initialFormState: AddressFormData = {
-    street: '', city: '', state: '', zipCode: '', phone: ''
+    street: '', city: '', state: '', zipCode: '', phone: '',
+    latitude: null, longitude: null
 };
 
 export function AddressForm({ addressToEdit, onSave }: AddressFormProps) {
@@ -40,6 +45,8 @@ export function AddressForm({ addressToEdit, onSave }: AddressFormProps) {
                 state: addressToEdit.state,
                 zipCode: addressToEdit.zipCode,
                 phone: addressToEdit.phone,
+                latitude: addressToEdit.latitude || null,
+                longitude: addressToEdit.longitude || null,
             });
         } else {
             setFormData(initialFormState);
@@ -49,6 +56,10 @@ export function AddressForm({ addressToEdit, onSave }: AddressFormProps) {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleLocationChange = ({ lat, lng }: { lat: number, lng: number }) => {
+        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
     };
 
     const handleSubmit = async (e: FormEvent) => {
@@ -73,7 +84,7 @@ export function AddressForm({ addressToEdit, onSave }: AddressFormProps) {
                 throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'add'} address.`);
             }
 
-            onSave(); // Trigger parent to refresh list and close dialog
+            onSave();
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -106,6 +117,11 @@ export function AddressForm({ addressToEdit, onSave }: AddressFormProps) {
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input name="phone" value={formData.phone} onChange={handleInputChange} required />
                 </div>
+            </div>
+
+            <div className="pt-2">
+                <Label>Set Location on Map (Optional)</Label>
+                <LocationPicker onLocationChange={handleLocationChange} />
             </div>
 
             {error && (

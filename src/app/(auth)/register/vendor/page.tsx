@@ -2,8 +2,19 @@
 import { useState } from "react"
 import type React from "react"
 
-import { Building2, Mail, Lock, User, Hash } from "lucide-react"
+import { Building2, Mail, Lock, User, Hash, MapPin } from "lucide-react"
 import OtpLogin from "@/components/OtpLogin"
+import { LocationPicker } from "@/components/shared/LocationPicker"
+
+const initialAddressState = {
+  street: "",
+  city: "",
+  state: "",
+  zipCode: "",
+  phone: "",
+  latitude: null as number | null,
+  longitude: null as number | null,
+}
 
 export default function VendorRegisterPage() {
   const [name, setName] = useState("")
@@ -13,6 +24,16 @@ export default function VendorRegisterPage() {
   const [restaurantId, setRestaurantId] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [address, setAddress] = useState(initialAddressState) // ✅ New state for address
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddress(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleLocationChange = ({ lat, lng }: { lat: number, lng: number }) => {
+    setAddress(prev => ({ ...prev, latitude: lat, longitude: lng }));
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +51,7 @@ export default function VendorRegisterPage() {
           password,
           restaurantName,
           restaurantId,
+          address
         }),
       })
 
@@ -59,111 +81,130 @@ export default function VendorRegisterPage() {
           <p className="text-slate-600 leading-relaxed">Create your restaurant account and start serving customers</p>
         </div>
         {!formSubmitted ? (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20 space-y-6"
-        >
-          {/* Personal Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">
-              Personal Information
-            </h3>
-
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-          </div>
-
-          {/* Restaurant Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">
-              Restaurant Information
-            </h3>
-
-            <div className="relative">
-              <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Restaurant Name"
-                value={restaurantName}
-                onChange={(e) => setRestaurantName(e.target.value)}
-                required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Restaurant ID"
-                value={restaurantId}
-                onChange={(e) => setRestaurantId(e.target.value)}
-                required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
-              />
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20 space-y-6"
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Creating Account...
-              </div>
-            ) : (
-              "Create Vendor Account"
-            )}
-          </button>
+            {/* Personal Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">
+                Personal Information
+              </h3>
 
-          {/* Footer */}
-          <div className="text-center pt-4 border-t border-slate-200">
-            <p className="text-sm text-slate-500">
-              Already have an account?{" "}
-              <a href="/login/vendor" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                Sign in here
-              </a>
-            </p>
-          </div>
-        </form>): (
-            <OtpLogin email={email} password={password} role={'VENDOR'}/>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                />
+              </div>
+
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                />
+              </div>
+            </div>
+
+            {/* Restaurant Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">
+                Restaurant Information
+              </h3>
+
+              <div className="relative">
+                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Restaurant Name"
+                  value={restaurantName}
+                  onChange={(e) => setRestaurantName(e.target.value)}
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                />
+              </div>
+
+              <div className="relative">
+                <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Restaurant ID"
+                  value={restaurantId}
+                  onChange={(e) => setRestaurantId(e.target.value)}
+                  required
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-700 border-b pb-2">Address & Location</h3>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input type="text" name="street" placeholder="Street Address" value={address.street} onChange={handleAddressChange} required className="w-full pl-11 pr-4 py-3 rounded-xl border-slate-200" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" name="city" placeholder="City" value={address.city} onChange={handleAddressChange} required className="w-full px-4 py-3 rounded-xl border-slate-200" />
+                <input type="text" name="state" placeholder="State" value={address.state} onChange={handleAddressChange} required className="w-full px-4 py-3 rounded-xl border-slate-200" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" name="zipCode" placeholder="Zip Code" value={address.zipCode} onChange={handleAddressChange} required className="w-full px-4 py-3 rounded-xl border-slate-200" />
+                <input type="tel" name="phone" placeholder="Contact Phone" value={address.phone} onChange={handleAddressChange} required className="w-full px-4 py-3 rounded-xl border-slate-200" />
+              </div>
+              <div>
+                <LocationPicker onLocationChange={handleLocationChange} />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Creating Account...
+                </div>
+              ) : (
+                "Create Vendor Account"
+              )}
+            </button>
+
+            {/* Footer */}
+            <div className="text-center pt-4 border-t border-slate-200">
+              <p className="text-sm text-slate-500">
+                Already have an account?{" "}
+                <a href="/login/vendor" className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                  Sign in here
+                </a>
+              </p>
+            </div>
+          </form>) : (
+          <OtpLogin email={email} password={password} role={'VENDOR'} />
         )}
       </div>
     </div>

@@ -18,8 +18,6 @@ export async function GET(request: Request) {
     return NextResponse.json(addresses);
 }
 
-// POST /api/addresses
-// Creates a new address for the logged-in user
 export async function POST(request: Request) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -28,14 +26,19 @@ export async function POST(request: Request) {
     const userId = parseInt(session.user.id, 10);
 
     const body = await request.json();
-    const { street, city, state, zipCode, phone } = body;
+    // ✅ Destructure latitude and longitude from the body
+    const { street, city, state, zipCode, phone, latitude, longitude } = body;
 
     if (!street || !city || !state || !zipCode || !phone) {
-        return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+        return NextResponse.json({ error: 'All address fields are required' }, { status: 400 });
     }
 
     const newAddress = await prismaClient.address.create({
-        data: { street, city, state, zipCode, phone, userId },
+        data: {
+            street, city, state, zipCode, phone, userId,
+            latitude, // Save the coordinates
+            longitude, // Save the coordinates
+        },
     });
 
     return NextResponse.json(newAddress, { status: 201 });

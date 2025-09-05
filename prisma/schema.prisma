@@ -42,18 +42,23 @@ model Vendor {
   rating         Float      @default(0)
   priceRange     Float?
   imageUrl       String?
+  addressId      Int        @unique // Foreign key to the Address table
+  address        Address    @relation(fields: [addressId], references: [id])
 }
 
 model Address {
-  id      Int    @id @default(autoincrement())
-  street  String
-  city    String
-  state   String
-  zipCode String
-  phone   String
+  id        Int    @id @default(autoincrement())
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  phone     String
+  latitude  Float?
+  longitude Float?
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id])
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  vendor Vendor?
 
   @@map("addresses")
 }

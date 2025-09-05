@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect, FormEvent, useCallback } from "react" // 1. Import useCallback
+import type React from "react"
+import { useState, useEffect, type FormEvent, useCallback } from "react"
 import { PlusCircle, Trash2, Edit, AlertCircle, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,7 +58,6 @@ export default function VendorDashboard() {
 
     const [error, setError] = useState<string | null>(null)
 
-    // ✅ 2. Define fetch functions in the component scope, wrapped in useCallback
     const fetchMenuItems = useCallback(async () => {
         setIsLoadingMenu(true)
         try {
@@ -74,7 +74,7 @@ export default function VendorDashboard() {
         } finally {
             setIsLoadingMenu(false)
         }
-    }, []) // Empty dependency array as it doesn't depend on props or state
+    }, [])
 
     const fetchOrders = useCallback(async () => {
         setIsLoadingOrders(true);
@@ -92,16 +92,14 @@ export default function VendorDashboard() {
         } finally {
             setIsLoadingOrders(false);
         }
-    }, []) // Empty dependency array
+    }, [])
 
-    // 3. Call the functions inside useEffect
     useEffect(() => {
         fetchMenuItems()
         fetchOrders();
     }, [fetchMenuItems, fetchOrders])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        // ... (this function is fine)
         const { name, value, type } = e.target;
         if (type === "number") {
             const parsedValue = parseFloat(value);
@@ -116,7 +114,7 @@ export default function VendorDashboard() {
     }
 
     const handleCheckboxChange = (checked: boolean) => {
-        setNewItem((prev) => ({ ...prev, isAvailable: checked }))
+        setNewItem((prev) => ({ ...prev, isAvailable: !!checked }))
     }
 
     const handleSubmit = async (e: FormEvent) => {
@@ -130,14 +128,12 @@ export default function VendorDashboard() {
                 throw new Error(errorData.error || "Failed to add new item.")
             }
             setNewItem(initialFormState)
-            // ✅ 4. Now this call works perfectly
             await fetchMenuItems();
         } catch (err: any) {
             setError(err.message)
         }
     }
 
-    // ... The rest of your JSX remains the same ...
     return (
         <div className="container mx-auto p-4 md:p-8 space-y-8">
             <h1 className="text-3xl font-bold">Vendor Dashboard</h1>
@@ -207,7 +203,42 @@ export default function VendorDashboard() {
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                {/* ... form inputs ... */}
+                                {/* ✅ FIXED FORM INPUTS START HERE */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input type="text" name="name" id="name" value={newItem.name} onChange={handleInputChange} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Description</Label>
+                                    <Textarea name="description" id="description" value={newItem.description} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price">Price (₹)</Label>
+                                        <Input type="number" name="price" id="price" value={newItem.price} onChange={handleInputChange} required />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="category">Category</Label>
+                                        <Select value={newItem.category} onValueChange={handleSelectChange}>
+                                            <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Main Course">Main Course</SelectItem>
+                                                <SelectItem value="Appetizer">Appetizer</SelectItem>
+                                                <SelectItem value="Dessert">Dessert</SelectItem>
+                                                <SelectItem value="Beverage">Beverage</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="imageUrl">Image URL</Label>
+                                    <Input type="url" name="imageUrl" id="imageUrl" value={newItem.imageUrl} onChange={handleInputChange} />
+                                </div>
+                                <div className="flex items-center space-x-2 pt-2">
+                                    <Checkbox id="isAvailable" checked={newItem.isAvailable} onCheckedChange={handleCheckboxChange} />
+                                    <Label htmlFor="isAvailable">Available for order</Label>
+                                </div>
+                                {/* ✅ FIXED FORM INPUTS END HERE */}
                                 <Button type="submit" className="w-full flex items-center gap-2">
                                     <PlusCircle className="h-4 w-4" />
                                     Add Item
@@ -217,6 +248,7 @@ export default function VendorDashboard() {
                     </Card>
                 </div>
             </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="text-2xl">My Menu</CardTitle>
@@ -224,6 +256,8 @@ export default function VendorDashboard() {
                 <CardContent>
                     {isLoadingMenu ? (
                         <p className="text-muted-foreground">Loading menu...</p>
+                    ) : menuItems.length === 0 ? (
+                        <p className="text-muted-foreground">You haven't added any items to your menu yet.</p>
                     ) : (
                         <div className="space-y-4">
                             {menuItems.map((item) => (
@@ -240,7 +274,7 @@ export default function VendorDashboard() {
                                                 <p className="text-sm text-muted-foreground">
                                                     {item.category} - ₹{item.price.toFixed(2)}
                                                 </p>
-                                                <Badge variant={item.isAvailable ? "default" : "secondary"}>
+                                                <Badge variant={item.isAvailable ? "default" : "destructive"}>
                                                     {item.isAvailable ? "Available" : "Unavailable"}
                                                 </Badge>
                                             </div>
