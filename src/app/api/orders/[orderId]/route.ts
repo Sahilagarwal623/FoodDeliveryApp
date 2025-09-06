@@ -18,7 +18,7 @@ export async function GET(request: Request, { params }: RouteContext) {
         }
         
         const userId = parseInt(session.user.id, 10);
-        const orderId = parseInt(params.orderId, 10);
+        const orderId = parseInt(await params.orderId, 10);
 
         if (isNaN(orderId)) {
             return NextResponse.json({ error: 'Invalid Order ID' }, { status: 400 });

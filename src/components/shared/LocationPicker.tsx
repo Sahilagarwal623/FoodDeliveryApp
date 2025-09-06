@@ -48,7 +48,7 @@ export function LocationPicker({ onLocationChange }: LocationPickerProps) {
                     };
                     setMarkerPosition(newPos);
                     onLocationChange(newPos);
-                    mapRef.current?.panTo(newPos); // Smoothly moves the map
+                    mapRef.current?.panTo(newPos);
                     mapRef.current?.setZoom(15);
                     setIsLoadingLocation(false);
                 },
