@@ -60,6 +60,8 @@ model Address {
 
   vendor Vendor?
 
+  orders Orders[]
+
   @@map("addresses")
 }
 
@@ -76,6 +78,8 @@ model Orders {
   payment       Payment?
   createdAt     DateTime     @default(now())
   items         OrderItem[]
+  addressId     Int
+  address       Address      @relation(fields: [addressId], references: [id])
 }
 
 model OrderItem {
@@ -104,6 +108,8 @@ model DeliveryMan {
   isAvailable   Boolean  @default(true)
   vehicleType   String?
   vehicleNumber String?
+  latitude      Float?
+  longitude     Float?
 }
 
 model menuItem {

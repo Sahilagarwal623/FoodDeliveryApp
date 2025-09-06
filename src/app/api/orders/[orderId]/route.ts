@@ -16,9 +16,9 @@ export async function GET(request: Request, { params }: RouteContext) {
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        
         const userId = parseInt(session.user.id, 10);
-        const orderId = parseInt(await params.orderId, 10);
+        const { orderId: orderIdString } = await params;
+        const orderId = parseInt(orderIdString, 10);
 
         if (isNaN(orderId)) {
             return NextResponse.json({ error: 'Invalid Order ID' }, { status: 400 });

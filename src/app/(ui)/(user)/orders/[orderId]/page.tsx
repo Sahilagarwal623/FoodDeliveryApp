@@ -186,8 +186,8 @@ export default function OrderConfirmationPage() {
                                 <p className="text-muted-foreground text-pretty">
                                     {"We'll keep you updated on your order status. Track your delivery in real-time!"}
                                 </p>
-                                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8">
-                                    Track Your Order
+                                <Button size="lg" asChild className="bg-primary hover:bg-primary/90 ...">
+                                    <Link href={`/orders/${order.id}/track`}>Track Your Order</Link>
                                 </Button>
                             </div>
 
