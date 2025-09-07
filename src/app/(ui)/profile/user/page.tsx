@@ -44,7 +44,7 @@ export default function ProfilePage() {
     const fetchProfile = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/profile', { credentials: 'include' });
+            const response = await fetch('/api/profile/user', { credentials: 'include' });
             if (!response.ok) throw new Error('Failed to fetch profile.');
             const data: UserProfile = await response.json();
             setProfile(data);

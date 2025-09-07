@@ -70,11 +70,27 @@ export default function Navbar() {
                           <LayoutGrid className="h-4 w-4" /> My Orders
                         </span>
                       </Link>
-                      <Link href="/profile" onClick={() => setIsDropdownOpen(false)}>
-                        <span className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
-                          <UserIcon className="h-4 w-4" /> My Profile
-                        </span>
-                      </Link>
+                      {
+                        session.user.role === 'USER' ? (
+                          <Link href="/profile/user" onClick={() => setIsDropdownOpen(false)}>
+                            <span className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
+                              <UserIcon className="h-4 w-4" /> My Profile
+                            </span>
+                          </Link>
+                        ) : session.user.role === 'DELIVERY' ? (
+                          <Link href="/profile/delivery" onClick={() => setIsDropdownOpen(false)}>
+                            <span className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
+                              <UserIcon className="h-4 w-4" /> My Profile
+                            </span>
+                          </Link>
+                        ) : (
+                          <Link href="/profile/vendor" onClick={() => setIsDropdownOpen(false)}>
+                            <span className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted">
+                              <UserIcon className="h-4 w-4" /> My Profile
+                            </span>
+                          </Link>
+                        )
+                      }
                       <button
                         onClick={() => signOut({ callbackUrl: "/" })}
                         className="flex w-full cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
