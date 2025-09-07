@@ -86,11 +86,6 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
                 await confirmationResult?.confirm(otp);
 
 
-                await signIn("credentials", {
-                    redirect: false,
-                    email: email,
-                    password: password,
-                })
                 const response = await fetch('/api/update-phone', {
                     method: 'PATCH',
                     headers: {
@@ -102,15 +97,29 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
                     credentials: 'include'
                 });
 
+                if (!response.ok) {
+                    setError("Failed to update phone number, please try again");
+                    return;
+                }
+                const res = await signIn("credentials", {
+                    redirect: false,
+                    email: email,
+                    password: password,
+                })
+
+                if (!res?.ok) {
+                    setError("Unable to SignIn, please try again later");
+                    return;
+                }
+
                 if (role === 'USER')
                     router.replace('/restaurants');
                 else if (role === 'VENDOR')
                     router.replace('/vendor/dashboard');
                 else if (role === 'DELIVERY')
                     router.replace('/delivery/dashboard')
-                if (!response.ok) {
-                    setError("Unable to SignIn, Pls try again later")
-                }
+
+                router.refresh();
             } catch (error: any) {
                 console.error('Error verifying OTP:', error);
                 setError('Failed to verify OTP, please try again');

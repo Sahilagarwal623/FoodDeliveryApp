@@ -1,7 +1,6 @@
 import { prismaClient } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { simulateDriver } from '@/lib/route-simulator';
 
 
 export async function POST(request: Request) {
@@ -64,42 +63,6 @@ export async function POST(request: Request) {
             return newOrder;
 
         })
-
-        // --- FETCH REAL ROUTE & START DYNAMIC SIMULATION ---
-        console.log("route initialization starts");
-
-        // 1. Fetch the vendor and address records to get their coordinates
-        const vendor = await prismaClient.vendor.findUnique({
-            where: { id: order.vendorId },
-            include: { address: true }
-        });
-        const deliveryAddress = await prismaClient.address.findUnique({
-            where: { id: order.addressId }
-        });
-
-        if (vendor?.address?.latitude && deliveryAddress?.latitude) {
-            console.log("inside");
-
-            const startLocation = `${vendor.address.latitude},${vendor.address.longitude}`;
-            const endLocation = `${deliveryAddress.latitude},${deliveryAddress.longitude}`;
-
-            // 2. Call the Google Maps Directions API
-            const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${startLocation}&destination=${endLocation}&key=${process.env.GOOGLE_MAPS_SERVER_KEY}`;
-
-            const directionsResponse = await fetch(directionsUrl);
-            const directionsData = await directionsResponse.json();
-
-            if (directionsData.status === 'OK' && directionsData.routes.length > 0) {
-                console.log("Successfully fetched route from Google.");
-                const encodedPolyline = directionsData.routes[0].overview_polyline.points;
-                simulateDriver(order.id, encodedPolyline);
-            } else {
-                // This will now log the specific error from Google
-                console.error("Google Directions API Error:", directionsData.status, directionsData.error_message);
-            }
-        }
-
-        // --- END SIMULATION LOGIC ---
 
         return NextResponse.json({ message: 'Order created successfully!', orderId: order.id }, { status: 201 });
 

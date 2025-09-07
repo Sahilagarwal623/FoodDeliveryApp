@@ -13,7 +13,6 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 type Location = { lat: number; lng: number; };
 
-// ✅ This function now accepts an encoded polyline string from the Directions API
 export async function simulateDriver(orderId: number, encodedPolyline: string) {
     console.log(`Starting REALISTIC simulation for order #${orderId}`);
 
@@ -33,7 +32,6 @@ export async function simulateDriver(orderId: number, encodedPolyline: string) {
 
     console.log(`Simulation finished for order #${orderId}`);
 
-    // Optional: Send a final status update
     await pusher.trigger(`order-${orderId}`, 'status-update', {
         status: 'DELIVERED',
     });
