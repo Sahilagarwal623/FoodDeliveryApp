@@ -5,15 +5,16 @@ import { prismaClient } from '@/lib/prisma';
 // ✅ PATCH /api/addresses/[addressId]
 export async function PATCH(
     request: Request,
-    { params }: { params: { addressId: string } }
+    context: { params: { addressId: string } } // <-- FIX: Use context here
 ) {
+    const { params } = context; // <-- FIX: Destructure params inside
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = parseInt(session.user.id, 10);
-    const addressId = parseInt(params.addressId, 10);
+    const addressId =  parseInt(params.addressId, 10);
     const body = await request.json();
 
     try {
@@ -36,8 +37,9 @@ export async function PATCH(
 // ✅ DELETE /api/addresses/[addressId]
 export async function DELETE(
     request: Request,
-    { params }: { params: { addressId: string } }
+    context: { params: { addressId: string } } // <-- FIX: Use context here
 ) {
+    const { params } = context; // <-- FIX: Destructure params inside
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
