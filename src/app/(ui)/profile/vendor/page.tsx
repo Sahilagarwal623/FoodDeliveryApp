@@ -5,18 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Building, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
 type VendorProfile = {
     restaurantName: string;
     imageUrl: string | null;
-    priceRange: number | null;
+    priceRange: number | null; 
     user: {
         name: string;
         email: string;
         phone: string | null;
     };
-    address: {
+    address: { 
         id: number;
         street: string;
         city: string;
@@ -43,7 +43,7 @@ export default function VendorProfilePage() {
         } catch (err: any) {
             setError(err.message);
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); 
         }
     };
 

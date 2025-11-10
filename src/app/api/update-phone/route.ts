@@ -1,9 +1,9 @@
 import { auth } from '@/auth';
 import { prismaClient } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // ✅ PATCH function: ONLY for updating data
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
     try {
         const session = await auth();
         console.log(session);

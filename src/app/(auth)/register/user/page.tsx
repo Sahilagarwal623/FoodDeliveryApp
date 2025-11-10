@@ -36,17 +36,6 @@ export default function RegisterPage() {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    try {
-      await signIn("google", {
-        redirect: true,
-        callbackUrl: "/restaurants",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -149,35 +138,6 @@ export default function RegisterPage() {
                 <span className="px-4 bg-white text-slate-500 font-medium">Or continue with</span>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-200 rounded-xl font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 48 48">
-                <g>
-                  <path
-                    fill="#FFC107"
-                    d="M43.611 20.083H42V20H24v8h11.303C34.73 32.077 29.927 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.066 0 5.86 1.154 7.987 3.033l6.043-5.876C34.527 6.163 29.523 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20c10.493 0 19.507-8.045 19.993-18.5.007-.167.007-.333.007-.5 0-1.341-.138-2.651-.389-3.917z"
-                  />
-                  <path
-                    fill="#FF3D00"
-                    d="M6.306 14.691l6.571 4.819C14.68 16.104 19.011 13 24 13c3.066 0 5.86 1.154 7.987 3.033l6.043-5.876C34.527 6.163 29.523 4 24 4c-7.732 0-14.307 4.418-17.694 10.691z"
-                  />
-                  <path
-                    fill="#4CAF50"
-                    d="M24 44c5.421 0 10.373-1.792 14.234-4.872l-6.654-5.432C29.927 36 24 36 18.697 32.077l-6.571 4.819C9.693 39.582 16.268 44 24 44z"
-                  />
-                  <path
-                    fill="#1976D2"
-                    d="M43.611 20.083H42V20H24v8h11.303c-1.009 2.73-3.036 5.01-5.697 6.696l.001-.001 6.654 5.432C40.374 41.211 44 36.5 44 24c0-.167 0-.333-.007-.5-.486-10.455-9.5-18.5-19.993-18.5z"
-                  />
-                </g>
-              </svg>
-              Continue with Google
-            </button>
           </form>) : (
             <OtpLogin email={email} password={password} role={'USER'}/>
 

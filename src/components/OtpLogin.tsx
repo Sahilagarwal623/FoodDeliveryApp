@@ -40,7 +40,8 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
 
     const router = useRouter();
     const [success, setSuccess] = useState('');
-    const [isPending, startTransition] = useTransition();
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isPending, startTransition] = useTransition(); // for sending OTP
     const [resendCountdown, setResendCountdown] = useState(0);
     const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
     useEffect(() => {
@@ -75,58 +76,60 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
     }, [otp]);
 
     const verifyOtp = async () => {
-        startTransition(async () => {
-            setError('');
-            if (!confirmationResult) {
-                setError('Pls Request OTP first');
+        setIsVerifying(true);
+        setError('');
+        if (!confirmationResult) {
+            setError('Please request OTP first');
+            setIsVerifying(false);
+            return;
+        }
+
+        try {
+            await confirmationResult.confirm(otp);
+
+            const res = await signIn("credentials", {
+                redirect: false,
+                email,
+                password,
+            });
+
+            if (!res?.ok) {
+                setError("Unable to Sign In, please try again later");
+                setIsVerifying(false);
                 return;
             }
 
-            try {
-                await confirmationResult?.confirm(otp);
+            const response = await fetch('/api/update-phone', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone: `+91${phone}` }),
+                credentials: 'include',
+            });
 
-
-                const response = await fetch('/api/update-phone', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        phone: `+91${phone}`,
-                    }),
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    setError("Failed to update phone number, please try again");
-                    return;
-                }
-                const res = await signIn("credentials", {
-                    redirect: false,
-                    email: email,
-                    password: password,
-                })
-
-                if (!res?.ok) {
-                    setError("Unable to SignIn, please try again later");
-                    return;
-                }
-
-                if (role === 'USER')
-                    router.replace('/restaurants');
-                else if (role === 'VENDOR')
-                    router.replace('/vendor/dashboard');
-                else if (role === 'DELIVERY')
-                    router.replace('/delivery/dashboard')
-
-                router.refresh();
-            } catch (error: any) {
-                console.error('Error verifying OTP:', error);
-                setError('Failed to verify OTP, please try again');
+            if (!response.ok) {
+                setError("Failed to update phone number, please try again");
+                setIsVerifying(false);
                 return;
             }
-        });
-    }
+
+            if (role === 'USER')
+                router.replace('/restaurants');
+            else if (role === 'VENDOR')
+                router.replace('/vendor/dashboard');
+            else if (role === 'DELIVERY')
+                router.replace('/delivery/dashboard');
+
+            router.refresh();
+        } catch (error: any) {
+            console.error('Error verifying OTP:', error);
+            setError('Failed to verify OTP, please try again');
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
 
     const requestOtp = async (e?: FormEvent) => {
         e?.preventDefault();
@@ -220,7 +223,7 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
             </div>
             <div id='recaptcha-container' />
 
-            {isPending && (
+            {(isPending || isVerifying) && (
                 <div className='flex flex-col justify-center items-center mt-5'>
                     <svg
                         className="w-6 h-6 text-gray-500 animate-spin"
@@ -242,9 +245,12 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
                             d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                         ></path>
                     </svg>
-                    <p className='text-gray-500 mt-2'>Sending OTP...</p>
+                    <p className='text-gray-500 mt-2'>
+                        {isVerifying ? 'Verifying OTP...' : 'Sending OTP...'}
+                    </p>
                 </div>
             )}
+
         </div>
     )
 }

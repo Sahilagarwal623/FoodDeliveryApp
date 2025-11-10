@@ -141,12 +141,12 @@ export default function SignInForm() {
         <div className="text-center mt-4">
           <p className="text-gray-600">
             New to QuickBite?{" "}
-            <Link href="/sign-up" className="text-orange-600 hover:text-orange-700 font-medium">
+            <Link href="/register/user" className="text-orange-600 hover:text-orange-700 font-medium">
               Create Account
             </Link>
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            <Link href="/guest-order" className="hover:text-orange-600">
+            <Link href="/restaurants" className="hover:text-orange-600">
               Continue as Guest
             </Link>
           </p>

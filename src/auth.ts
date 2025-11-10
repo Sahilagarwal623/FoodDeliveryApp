@@ -60,15 +60,44 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account, profile }) {
+      // When user signs in with Google
+      if (account?.provider === "google" && user?.email) {
+        // Check if user exists in DB
+        let existingUser = await prismaClient.user.findUnique({
+          where: { email: user.email },
+        });
+
+        // If not, create one
+        if (!existingUser) {
+          existingUser = await prismaClient.user.create({
+            data: {
+              name: user.name || "",
+              email: user.email,
+              image: user.image || "",
+              role: "USER", // default role
+            },
+          });
+        }
+
+        // Sync DB info into token
+        token.id = existingUser.id;
+        token.name = existingUser.name;
+        token.email = existingUser.email;
+        token.role = existingUser.role;
+      }
+
+      // When using credentials provider
+      if (user && account?.provider === "credentials") {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
       }
+
       return token;
     },
+
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
