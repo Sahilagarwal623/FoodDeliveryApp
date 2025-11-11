@@ -16,8 +16,8 @@ type Address = {
     state: string;
     zipCode: string;
     phone: string;
-    latitude: number | null;
-    longitude: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
 };
 
 type AddressFormData = Omit<Address, 'id'>;

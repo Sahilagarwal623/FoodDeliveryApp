@@ -2,23 +2,10 @@ import { prismaClient } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 
-interface RouteParams {
-    params: {
-        restaurantId: string
-    }
-}
-//     type MenuApiResponse = {
-//   restaurant: {
-//     name: string;
-//   };
-//   menu: MenuItem[];
-// };
-
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: Request, context: any) {
 
     try {
-        const { restaurantId } = await params
-        const restaurantIdInt = parseInt(restaurantId, 10);
+    const restaurantIdInt = parseInt(context.params.restaurantId, 10);
         const vendor = await prismaClient.vendor.findUnique({
             where: {
                 id: restaurantIdInt

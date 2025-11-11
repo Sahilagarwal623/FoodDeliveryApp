@@ -2,26 +2,18 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prismaClient } from '@/lib/prisma';
 
-// Define the shape of the parameters object for clarity
-interface RouteContext {
-    params: {
-        orderId: string;
-    }
-}
 
 // GET /api/orders/[orderId]/track
 // Fetches the necessary location data for a specific order to display on a map.
-export async function GET(request: Request, { params }: RouteContext) {
+export async function GET(request: Request, context: any) {
     try {
         // 1. Authenticate the user session
         const session = await auth();
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-
         const userId = parseInt(session.user.id, 10);
-        const { orderId: orderIdString } = await params;
-        const orderId = parseInt(orderIdString, 10);
+        const orderId = parseInt(context.params.orderId, 10);
 
         if (isNaN(orderId)) {
             return NextResponse.json({ error: 'Invalid Order ID' }, { status: 400 });

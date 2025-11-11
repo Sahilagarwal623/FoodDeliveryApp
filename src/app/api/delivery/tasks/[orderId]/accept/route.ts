@@ -12,15 +12,15 @@ const pusher = new Pusher({
     useTLS: true
 });
 
-
-export async function PATCH(request: Request, { params }: { params: { orderId: string } }) {
+export async function PATCH(request: Request, context: any) {
     const session = await auth();
+
     if (!session?.user?.id || session.user.role !== 'DELIVERY') {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
     const userId = parseInt(session.user.id, 10);
-    const {orderId: orderIdString} = await params;
-    const orderId = parseInt(orderIdString, 10);
+    const orderId = parseInt(context.params.orderId, 10);
 
     try {
         const deliveryMan = await prismaClient.deliveryMan.findUnique({ where: { userId } });
@@ -28,7 +28,7 @@ export async function PATCH(request: Request, { params }: { params: { orderId: s
             return NextResponse.json({ error: 'Delivery profile not found' }, { status: 404 });
         }
 
-        // 1. Fetch the order and its related address/vendor data
+        // 1️⃣ Fetch the order and related vendor/address
         const orderToAccept = await prismaClient.orders.findFirst({
             where: { id: orderId, status: 'PENDING', deliveryManId: null },
             include: { vendor: { include: { address: true } }, address: true }
@@ -38,7 +38,7 @@ export async function PATCH(request: Request, { params }: { params: { orderId: s
             return NextResponse.json({ error: 'Order is no longer available to accept.' }, { status: 409 });
         }
 
-        // 2. Update the order to assign the driver
+        // 2️⃣ Assign the order to the delivery man
         await prismaClient.orders.update({
             where: { id: orderId },
             data: {
@@ -47,12 +47,12 @@ export async function PATCH(request: Request, { params }: { params: { orderId: s
             }
         });
 
-        // 3. Trigger the Pusher event for the status update
+        // 3️⃣ Notify clients via Pusher
         await pusher.trigger(`order-${orderId}`, 'status-update', {
             status: 'OUT_FOR_DELIVERY'
         });
 
-        // 4. Start the driver simulation with the fetched coordinates
+        // 4️⃣ Simulate driver movement using Google Directions API
         const vendorAddress = orderToAccept.vendor.address;
         const userAddress = orderToAccept.address;
 
@@ -66,14 +66,14 @@ export async function PATCH(request: Request, { params }: { params: { orderId: s
 
             if (directionsData.status === 'OK') {
                 const encodedPolyline = directionsData.routes[0].overview_polyline.points;
-                simulateDriver(orderId, encodedPolyline); // Fire-and-forget
+                simulateDriver(orderId, encodedPolyline); // Fire-and-forget simulation
             }
         }
 
         return NextResponse.json({ message: 'Order accepted successfully' });
 
     } catch (error) {
-        console.error(`Error accepting order ${orderId}:`, error);
+        console.error(`Error accepting order ${context.params?.orderId}:`, error);
         return NextResponse.json({ error: 'Failed to accept order' }, { status: 500 });
     }
 }

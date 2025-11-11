@@ -57,6 +57,8 @@ export default function VendorDashboard() {
     const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
     const [error, setError] = useState<string | null>(null)
+    const [editingItemId, setEditingItemId] = useState<number | null>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const fetchMenuItems = useCallback(async () => {
         setIsLoadingMenu(true)
@@ -120,18 +122,74 @@ export default function VendorDashboard() {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
         setError(null)
+        setIsSubmitting(true)
 
         try {
-            const response = await fetch('/api/vendor/menu-items', { method: 'POST', body: JSON.stringify(newItem), credentials: 'include', headers: { 'Content-Type': 'application/json' } })
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || "Failed to add new item.")
+            if (editingItemId) {
+                // Update existing item
+                const response = await fetch(`/api/vendor/menu-items/${editingItemId}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(newItem),
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    throw new Error(errorData.error || "Failed to update item.")
+                }
+                setEditingItemId(null)
+            } else {
+                // Create new item
+                const response = await fetch('/api/vendor/menu-items', {
+                    method: 'POST',
+                    body: JSON.stringify(newItem),
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    throw new Error(errorData.error || "Failed to add new item.")
+                }
             }
             setNewItem(initialFormState)
             await fetchMenuItems();
         } catch (err: any) {
             setError(err.message)
+        } finally {
+            setIsSubmitting(false)
         }
+    }
+
+    const handleEditItem = (item: MenuItem) => {
+        setNewItem(item)
+        setEditingItemId(item.id)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    const handleDeleteItem = async (itemId: number) => {
+        if (!confirm('Are you sure you want to delete this item?')) {
+            return
+        }
+
+        setError(null)
+        try {
+            const response = await fetch(`/api/vendor/menu-items/${itemId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            })
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.error || "Failed to delete item.")
+            }
+            await fetchMenuItems();
+        } catch (err: any) {
+            setError(err.message)
+        }
+    }
+
+    const handleCancelEdit = () => {
+        setEditingItemId(null)
+        setNewItem(initialFormState)
     }
 
     return (
@@ -199,7 +257,7 @@ export default function VendorDashboard() {
                 <div className="lg:col-span-1">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-2xl">Add Menu Item</CardTitle>
+                            <CardTitle className="text-2xl">{editingItemId ? 'Edit Menu Item' : 'Add Menu Item'}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
@@ -239,10 +297,21 @@ export default function VendorDashboard() {
                                     <Label htmlFor="isAvailable">Available for order</Label>
                                 </div>
                                 {/* ✅ FIXED FORM INPUTS END HERE */}
-                                <Button type="submit" className="w-full flex items-center gap-2">
-                                    <PlusCircle className="h-4 w-4" />
-                                    Add Item
-                                </Button>
+                                {editingItemId ? (
+                                    <div className="space-y-2">
+                                        <Button type="submit" className="w-full flex items-center gap-2" disabled={isSubmitting}>
+                                            {isSubmitting ? 'Updating...' : 'Update Item'}
+                                        </Button>
+                                        <Button type="button" variant="outline" className="w-full" onClick={handleCancelEdit}>
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button type="submit" className="w-full flex items-center gap-2" disabled={isSubmitting}>
+                                        <PlusCircle className="h-4 w-4" />
+                                        {isSubmitting ? 'Adding...' : 'Add Item'}
+                                    </Button>
+                                )}
                             </form>
                         </CardContent>
                     </Card>
@@ -280,10 +349,10 @@ export default function VendorDashboard() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon">
+                                            <Button variant="ghost" size="icon" onClick={() => handleEditItem(item)}>
                                                 <Edit className="h-4 w-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon">
+                                            <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)}>
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
