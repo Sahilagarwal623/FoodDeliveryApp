@@ -60,15 +60,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token, user, account }) {
-
-      token.id = user.id;
-      token.name = user.name;
-      token.email = user.email;
-      token.role = user.role;
-
+    async jwt({ token, user }) {
+      // When user logs in, `user` is defined. Store its data in token.
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
+      }
+      // Otherwise, just return existing token
       return token;
     },
+
 
     async session({ session, token }) {
       if (token) {

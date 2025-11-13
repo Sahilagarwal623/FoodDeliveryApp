@@ -9,7 +9,7 @@ import {
 
 import { useRouter } from 'next/navigation'
 
-import { signIn } from 'next-auth/react';
+import { getSession, signIn } from 'next-auth/react';
 
 import { auth } from '@/lib/firebase';
 
@@ -98,6 +98,8 @@ export default function OtpLogin({ email, password, role }: OtpLoginProps) {
                 setIsVerifying(false);
                 return;
             }
+
+            await getSession();
 
             const response = await fetch('/api/update-phone', {
                 method: 'PATCH',
