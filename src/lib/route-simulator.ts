@@ -11,8 +11,6 @@ const pusher = new Pusher({
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-type Location = { lat: number; lng: number; };
-
 export async function simulateDriver(orderId: number, encodedPolyline: string) {
     console.log(`Starting REALISTIC simulation for order #${orderId}`);
 

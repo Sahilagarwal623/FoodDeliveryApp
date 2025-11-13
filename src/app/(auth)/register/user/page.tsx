@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState } from "react"
-import { signIn } from "@/auth-client"
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import OtpLogin from "@/components/OtpLogin"
 

@@ -19,7 +19,7 @@ export function encrypt(text: string): string {
 }
 
 
-export function decrypt(text: String): String {
+export function decrypt(text: string): string {
 
     const [ivHex, encrypted] = text.split(':');
     const decipher = crypto.createDecipheriv(

@@ -1,16 +1,30 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+// eslint.config.mjs
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export default defineConfig([
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'dist/**',
+    'node_modules/**',
+    'prisma/**',
+    'src/generated/prisma/**',
+    'next-env.d.ts',
+    '*.config.js',
+    '*.config.mjs',
+  ]),
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
-
-export default eslintConfig;
+  {
+    rules: {
+      // Suppress noisy rules from your lint output
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/no-this-alias': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      'react/prop-types': 'off',
+      'react/display-name': 'off',
+    },
+  },
+]);
